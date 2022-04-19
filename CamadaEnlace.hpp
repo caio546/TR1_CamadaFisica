@@ -1,6 +1,12 @@
 #ifndef __CAMADA_ENLACE_H__
 #define __CAMADA_ENLACE_H__
 
+#define CONTAGEM_CARACTERES 0
+#define INSERCAO_BYTES 1
+
+#define BIT_PARIDADE 0
+#define CRC 1
+
 using namespace std;
 
 void CamadaEnlaceDadosTransmissora (vector<int> quadro);
@@ -23,10 +29,10 @@ vector<int> CamadaEnlaceDadosReceptoraEnquadramentoContagemDeCaracteres (vector<
 
 vector<int> CamadaEnlaceDadosReceptoraEnquadramentoInsercaoDeBytes (vector<int> quadro);
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro);
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro);
 void CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro);
 
-void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro);
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro);
 void CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro);
 
 #endif 

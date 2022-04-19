@@ -7,12 +7,13 @@
 #include "CamadaEnlace.hpp"
 #include "CamadaFisica.hpp"
 
+int tipoDeEnquadramento = CONTAGEM_CARACTERES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
+int tipoDeControleDeErro = BIT_PARIDADE; // BIT_PARIDADE ou CRC
+
 void CamadaEnlaceDadosTransmissora (vector<int> quadro) {
   vector<int> quadroEmBits;
 
   quadro = CamadaEnlaceDadosTransmissoraEnquadramento(quadro);
-
-  quadro = CamadaEnlaceDadosTransmissoraControleDeErro(quadro);
 
   // O problema ta aqui
   for (int i = 0; i < quadro.size(); i++) {
@@ -22,11 +23,12 @@ void CamadaEnlaceDadosTransmissora (vector<int> quadro) {
       quadroEmBits.push_back(x[j]);
   }
 
+  quadroEmBits = CamadaEnlaceDadosTransmissoraControleDeErro(quadroEmBits);
+
   CamadaFisicaTransmissora(quadroEmBits);
 } 
 
 vector<int> CamadaEnlaceDadosTransmissoraEnquadramento (vector<int> quadro) {
-  int tipoDeEnquadramento = 1;
   vector<int> quadroEnquadrado;
 
   switch (tipoDeEnquadramento) {
@@ -96,30 +98,37 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoInsercaoDeBytes (vector<in
 }
 
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErro (vector<int> quadro) {
-  int tipoDeControleDeErro = 0;
+  vector<int> quadroComControleDeErros;
 
   switch (tipoDeControleDeErro) {
     case 0: // bit de paridade par
-      // codigo
+      quadroComControleDeErros = CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(quadro);
       break;
     case 1: // CRC
       // codigo
       break;
   }
 
-  return quadro;
+  return quadroComControleDeErros;
 }
 
 void CamadaEnlaceDadosReceptora (vector<int> quadro) {
-  quadro = CamadaEnlaceDadosReceptoraEnquadramento(quadro);
-
   quadro = CamadaEnlaceDadosReceptoraControleDeErro(quadro);
+
+  // cout << "Debug: " << endl;
+
+  // for (int i = 0; i < (int) quadro.size(); i++) {
+  //   if (i % 8 == 0) cout << " | ";
+  //   cout << quadro[i] << " ";
+  // }
+  // cout << endl;
+
+  quadro = CamadaEnlaceDadosReceptoraEnquadramento(quadro);
 
   CamadaDeAplicacaoReceptora(quadro);
 }
 
 vector<int> CamadaEnlaceDadosReceptoraEnquadramento (vector<int> quadro) {
-  int tipoDeEnquadramento = 1;
   vector<int> quadroDesenquadrado;
 
   switch (tipoDeEnquadramento) {
@@ -179,30 +188,53 @@ vector<int> CamadaEnlaceDadosReceptoraEnquadramentoInsercaoDeBytes(vector<int> q
 }
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErro (vector<int> quadro) {
-  int tipoDeControleDeErro = 0;
+  vector<int> quadroSemControleDeErros;
 
   switch (tipoDeControleDeErro) {
     case 0: // bit de paridade par
-      // codigo
+      quadroSemControleDeErros = CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(quadro);
       break;
     case 1: // CRC
       // codigo
       break;
   }
 
-  return quadro;
+  return quadroSemControleDeErros;
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro) {
-  //
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro) {
+  int quantidadeDeBits1 = count(quadro.begin(), quadro.end(), 1);
+
+  if (quantidadeDeBits1 % 2 == 0) {
+    quadro.push_back(0);
+  } else {
+    quadro.push_back(1);
+  }
+
+  return quadro;
 }
 
 void CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro) {
   //
 }
 
-void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro) {
-  //
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro) {
+  int quantidadeDeBits1 = count(quadro.begin(), quadro.end(), 1);
+
+  if (quantidadeDeBits1 % 2 == 0) {
+    quadro.pop_back();
+  } else {
+    // Deu erro
+  }
+
+  cout << "Debug: " << endl;
+  for (int i = 0; i < (int) quadro.size(); i++) {
+    if (i % 8 == 0) cout << " | ";
+    cout << quadro[i] << " ";
+  }
+  cout << endl;
+
+  return quadro;
 }
 
 void CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {

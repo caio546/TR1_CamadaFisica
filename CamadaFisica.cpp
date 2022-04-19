@@ -11,7 +11,7 @@
 int deslocamento;
 int periodoDeTransmissao = 125; // em milisegundos
 
-int tipoDeCodificacao = BIPOLAR; // BINARIA, MANCHESTER ou BIPOLAR
+int tipoDeCodificacao = BINARIA; // BINARIA, MANCHESTER ou BIPOLAR
 
 /*****************************************************************************
 Funcao responsavel por receber a mensagem do usuario e repassar para as
