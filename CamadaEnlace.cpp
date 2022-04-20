@@ -8,7 +8,7 @@
 #include "CamadaFisica.hpp"
 
 int tipoDeEnquadramento = CONTAGEM_CARACTERES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
-int tipoDeControleDeErro = BIT_PARIDADE; // BIT_PARIDADE ou CRC
+int tipoDeControleDeErro = CRC; // BIT_PARIDADE ou CRC
 
 void CamadaEnlaceDadosTransmissora (vector<int> quadro) {
   vector<int> quadroEmBits;
@@ -105,7 +105,7 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErro (vector<int> quadro) {
       quadroComControleDeErros = CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(quadro);
       break;
     case 1: // CRC
-      // codigo
+      quadroComControleDeErros = CamadaEnlaceDadosTransmissoraControleDeErroCRC(quadro);
       break;
   }
 
@@ -195,9 +195,15 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErro (vector<int> quadro) {
       quadroSemControleDeErros = CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(quadro);
       break;
     case 1: // CRC
-      // codigo
+      quadroSemControleDeErros = CamadaEnlaceDadosReceptoraControleDeErroCRC(quadro);
       break;
   }
+
+  // cout << "Debug:" << endl;
+  // for (int i = 0; i < (int) quadroSemControleDeErros.size(); i++) {
+  //   cout << quadroSemControleDeErros[i] << " "; 
+  // }
+  // cout << endl;
 
   return quadroSemControleDeErros;
 }
@@ -214,12 +220,64 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<in
   return quadro;
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro) {
-  //
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro) {
+  vector<int> key{1, 0, 0, 1, 1};
+  vector<int> temp(20), rem(20);
+
+  int aux = (int) quadro.size();
+
+  // Completar com zeros o quadro
+  for (int i = 0; i < (int) key.size() - 1; i++) {
+    quadro.push_back(0);
+  }
+
+  for (int i = 0; i < (int) key.size(); i++) {
+    rem[i] = quadro[i];
+  }
+
+  for (int j = (int) key.size(); j <= (int) quadro.size(); j++) {
+    for (int i = 0; i < (int) key.size(); i++) {
+      temp[i] = rem[i];
+    }
+
+    if (rem[0] == 0) {
+      for (int i = 0; i < (int) key.size() - 1; i++) {
+        rem[i] = temp[i+1];
+      }
+    } else {
+      for (int i = 0; i < (int) key.size() - 1; i++) {
+        rem[i] = (temp[i+1] ^ key[i+1]);
+      }
+    }
+
+    if (j != (int) quadro.size()) {
+      rem[(int) key.size() - 1] = quadro[j];
+    }
+  }
+
+  for (int i = 0; i < (int) key.size() - 1; i++) {
+    quadro[aux + i] = rem[i];
+  }
+
+  // cout << "CRC 1:" << endl;
+  // for (int i = 0; i < (int) key.size() -1; i++) {
+  //   cout << rem[i] << " ";
+  // }
+  // cout << endl;
+
+  // cout << "Quadro 1:" << endl;
+  // for (int i = 0; i < (int) quadro.size(); i++) {
+  //   cout << quadro[i] << " ";
+  // }
+  // cout << endl;
+
+  return quadro;
 }
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro) {
   int quantidadeDeBits1 = count(quadro.begin(), quadro.end(), 1);
+
+  int aux = 0;
 
   if (quantidadeDeBits1 % 2 == 0) {
     quadro.pop_back();
@@ -227,16 +285,56 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> 
     // Deu erro
   }
 
-  cout << "Debug: " << endl;
-  for (int i = 0; i < (int) quadro.size(); i++) {
-    if (i % 8 == 0) cout << " | ";
-    cout << quadro[i] << " ";
-  }
-  cout << endl;
-
   return quadro;
 }
 
-void CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
-  //
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
+  vector<int> key{1, 0, 0, 1, 1};
+  vector<int> temp(20), rem(20);
+
+  int aux = (int) quadro.size();
+
+  for (int i = 0; i < (int) key.size(); i++) {
+    rem[i] = quadro[i];
+  }
+
+  for (int j = (int) key.size(); j <= (int) quadro.size(); j++) {
+    for (int i = 0; i < (int) key.size(); i++) {
+      temp[i] = rem[i];
+    }
+
+    if (rem[0] == 0) {
+      for (int i = 0; i < (int) key.size() - 1; i++) {
+        rem[i] = temp[i+1];
+      }
+    } else {
+      for (int i = 0; i < (int) key.size() - 1; i++) {
+        rem[i] = (temp[i+1] ^ key[i+1]);
+      }
+    }
+
+    if (j != (int) quadro.size()) {
+      rem[(int) key.size() - 1] = quadro[j];
+    }
+  }
+
+  for (int i = 0; i < (int) key.size() - 1; i++) {
+    quadro[aux + i] = rem[i];
+  }
+
+  for (int i = 0; i < (int) key.size() -1; i++) {
+    aux += rem[i];
+  }
+
+  int aux2 = 0;
+
+  if (aux2 != 0) {
+    cout << "Houve um erro na transmissão\n";
+  } else {
+    for (int i = 0; i < (int) key.size() - 1; i++) {
+      quadro.pop_back();
+    }
+  }
+
+  return quadro;
 }

@@ -30,9 +30,9 @@ vector<int> CamadaEnlaceDadosReceptoraEnquadramentoContagemDeCaracteres (vector<
 vector<int> CamadaEnlaceDadosReceptoraEnquadramentoInsercaoDeBytes (vector<int> quadro);
 
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro);
-void CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro);
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro);
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro);
-void CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro);
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro);
 
 #endif 
