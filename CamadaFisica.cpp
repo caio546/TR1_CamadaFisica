@@ -36,13 +36,6 @@ void CamadaDeAplicacaoTransmissora(string mensagem) {
   for (int i = 0; i < (int) mensagem.size(); i++) {
     quadro.push_back(mensagem[i]);
   }
-
-  // for (std::size_t i = 0; i < mensagem.size(); ++i) {
-  //   bitset<8> x = mensagem.c_str()[i];
-
-  //   for (int j = 7; j >= 0; j--)
-  //     quadro.push_back(x[j]);
-  // }
   
   // chama a proxima camada
   CamadaEnlaceDadosTransmissora(quadro);
@@ -120,12 +113,24 @@ vector<int> CamadaFisicaTransmissoraCodificacaoBipolar(vector<int> quadro) {
 void MeioDeComunicacao(vector<int> fluxoBrutoDeBits) {
   iniciarGUI(); // Inicializar interface grafica
 
+  int erro, porcentagemDeErros;
   vector<int> fluxoBrutoBitsPontoA, fluxoBrutoBitsPontoB;
 
+  porcentagemDeErros = 4; // 10%, 20%, 30%, ..., 100%
   fluxoBrutoBitsPontoA = fluxoBrutoDeBits;
+  fluxoBrutoBitsPontoB = fluxoBrutoDeBits;
 
   for(int i = 0 ; i < fluxoBrutoBitsPontoA.size() ; i++) {
-    fluxoBrutoBitsPontoB.push_back( fluxoBrutoBitsPontoA[i] ); // BITS! Sendo transferidos
+    int ruido = rand() % 100;
+
+    if (ruido < porcentagemDeErros) {
+      // Erro
+      fluxoBrutoBitsPontoA[i] == 0 ?
+      fluxoBrutoBitsPontoA[i] = 1  :
+      fluxoBrutoBitsPontoA[i] = 0;
+    }
+
+    fluxoBrutoBitsPontoB[i] = ( fluxoBrutoBitsPontoA[i] ); // BITS! Sendo transferidos
   }
 
   transmitirInformacao(fluxoBrutoBitsPontoB); // Imprimir informacao codificada na tela
