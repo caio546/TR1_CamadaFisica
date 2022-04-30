@@ -8,15 +8,22 @@
 #include "CamadaEnlace.hpp"
 #include "CamadaFisica.hpp"
 
+// Variáveis Globais
+vector<int> chaveCRC{1, 0, 0, 1, 1};
+
 int tipoDeEnquadramento = CONTAGEM_CARACTERES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
 int tipoDeControleDeErro = HAMMING; // BIT_PARIDADE, CRC ou HAMMING 
 
+/*****************************************************************************
+Funcao responsavel por realizar o enquadramento e controle de erros na mensagem
+vinda das camadas superiores
+*****************************************************************************/
 void CamadaEnlaceDadosTransmissora (vector<int> quadro) {
   vector<int> quadroEmBits;
 
   quadro = CamadaEnlaceDadosTransmissoraEnquadramento(quadro);
 
-  // O problema ta aqui
+  // Transforma bytes para bits
   for (int i = 0; i < quadro.size(); i++) {
     bitset<8> x = quadro[i];
 
@@ -29,6 +36,10 @@ void CamadaEnlaceDadosTransmissora (vector<int> quadro) {
   CamadaFisicaTransmissora(quadroEmBits);
 } 
 
+/*****************************************************************************
+Funcao responsavel por aplicar o protocolo de enquadramento escolhido pelo
+usuário
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraEnquadramento (vector<int> quadro) {
   vector<int> quadroEnquadrado;
 
@@ -44,12 +55,16 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramento (vector<int> quadro) {
   return quadroEnquadrado;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar o enquadramento de Contagem de Caracteres
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoContagemDeCaracteres (vector<int> quadro) {
   vector<int> quadroEnquadrado;
 
   int quadrosCheios = (int) quadro.size() / 4;
   int quadrosParciais = (int) quadro.size() % 4;
 
+  // Definir cada quadro com 5 bits
   for (int i = 0; i < quadrosCheios; i++) {
     quadroEnquadrado.push_back(5);
 
@@ -58,6 +73,7 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoContagemDeCaracteres (vect
     }
   }
 
+  // O restante dos bits serao enquadrados de acordo com seu tamanho
   if (quadrosParciais != 0) {
     quadroEnquadrado.push_back(quadrosParciais+1);
 
@@ -69,12 +85,18 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoContagemDeCaracteres (vect
   return quadroEnquadrado;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar o enquadramento de Insercao de Bytes
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoInsercaoDeBytes (vector<int> quadro) {
+  // O byte de flag escolhido é o numero 27
   vector<int> quadroEnquadrado;
 
   int quadrosCheios = (int) quadro.size() / 4;
   int quadrosParciais = (int) quadro.size() % 4;
 
+
+  // Cada quadro foi limitado a 4 bits
   for (int i = 0; i < quadrosCheios; i++) {
     quadroEnquadrado.push_back(27);
 
@@ -85,6 +107,7 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoInsercaoDeBytes (vector<in
     quadroEnquadrado.push_back(27);
   }
 
+  // Enquadramento dos bits restantes
   if (quadrosParciais != 0) {
     quadroEnquadrado.push_back(27);
 
@@ -98,6 +121,9 @@ vector<int> CamadaEnlaceDadosTransmissoraEnquadramentoInsercaoDeBytes (vector<in
   return quadroEnquadrado;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar o controle de erro escolhido pelo usuário
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErro (vector<int> quadro) {
   vector<int> quadroComControleDeErros;
 
@@ -116,6 +142,9 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErro (vector<int> quadro) {
   return quadroComControleDeErros;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar o controle de erro por bit de paridade par
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<int> quadro) {
   int quantidadeDeBits1 = count(quadro.begin(), quadro.end(), 1);
 
@@ -128,73 +157,55 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<in
   return quadro;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar aplicar o controle de erro CRC (polinomial)
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro) {
-  vector<int> key{1, 0, 0, 1, 1};
   vector<int> temp(20), rem(20);
 
   int aux = (int) quadro.size();
 
   // Completar com zeros o quadro
-  for (int i = 0; i < (int) key.size() - 1; i++) {
+  for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
     quadro.push_back(0);
   }
 
-  for (int i = 0; i < (int) key.size(); i++) {
+  for (int i = 0; i < (int) chaveCRC.size(); i++) {
     rem[i] = quadro[i];
   }
 
-  for (int j = (int) key.size(); j <= (int) quadro.size(); j++) {
-    for (int i = 0; i < (int) key.size(); i++) {
+  for (int j = (int) chaveCRC.size(); j <= (int) quadro.size(); j++) {
+    for (int i = 0; i < (int) chaveCRC.size(); i++) {
       temp[i] = rem[i];
     }
 
     if (rem[0] == 0) {
-      for (int i = 0; i < (int) key.size() - 1; i++) {
+      for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
         rem[i] = temp[i+1];
       }
     } else {
-      for (int i = 0; i < (int) key.size() - 1; i++) {
-        rem[i] = (temp[i+1] ^ key[i+1]);
+      for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
+        rem[i] = (temp[i+1] ^ chaveCRC[i+1]);
       }
     }
 
     if (j != (int) quadro.size()) {
-      rem[(int) key.size() - 1] = quadro[j];
+      rem[(int) chaveCRC.size() - 1] = quadro[j];
     }
   }
 
-  for (int i = 0; i < (int) key.size() - 1; i++) {
+  for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
     quadro[aux + i] = rem[i];
   }
-
-  // cout << "CRC 1:" << endl;
-  // for (int i = 0; i < (int) key.size() -1; i++) {
-  //   cout << rem[i] << " ";
-  // }
-  // cout << endl;
-
-  // cout << "Quadro 1:" << endl;
-  // for (int i = 0; i < (int) quadro.size(); i++) {
-  //   cout << quadro[i] << " ";
-  // }
-  // cout << endl;
 
   return quadro;
 }
 
+/*****************************************************************************
+Funcao responsavel por realizar aplicar o controle de erro de Hamming
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoDeHamming (vector<int> quadro) {
-  // cout << "Debug:" << endl;
-  // for (int i = 0; i < (int) quadro.size(); i++) {
-  //   if (i % 8 == 0) cout << " | ";
-  //   cout << quadro[i] << " ";
-  // }
-  // cout << endl;
-
-  // int quantidadeDeCodificacoes = (int) quadro.size() / 8;
-  // int bitsRestantes = (int) quadro.size() % 8;
   vector<int> ans;
-
-  // vector<int> ans(12 * quantidadeDeCodificacoes + bitsRestantes);
 
   for (int i = 0; i < (int) quadro.size(); i+=8) {
     vector<int> temp; // de 8 em 8
@@ -220,45 +231,26 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoDeHamming (vector<i
     aux[7] = aux[8] ^ aux[9] ^ aux[10] ^ aux[11];
 
     ans.insert(ans.end(), aux.begin(), aux.end());
-
-    // cout << "Debug:" << endl;
-    // for (int i = 0; i < (int) temp.size(); i++) {
-    //   if (i % 8 == 0) cout << " | ";
-    //   cout << temp[i] << " ";
-    // }
-    // cout << endl;
-
-    // vector<int> aux;
-
-    // temp = aux;
   }
-
-  // cout << "Debug:" << endl;
-  // for (int i = 0; i < (int) ans.size(); i++) {
-  //   if (i % 12 == 0) cout << " | ";
-  //   cout << ans[i] << " ";
-  // }
-  // cout << endl;
 
   return ans;
 }
 
+/*****************************************************************************
+Funcao responsavel por receber o sinal das camadas anteriores, detectar ou 
+corrigir os erros e desenquadrar
+*****************************************************************************/
 void CamadaEnlaceDadosReceptora (vector<int> quadro) {
   quadro = CamadaEnlaceDadosReceptoraControleDeErro(quadro);
-
-  // cout << "Debug: " << endl;
-
-  // for (int i = 0; i < (int) quadro.size(); i++) {
-  //   if (i % 8 == 0) cout << " | ";
-  //   cout << quadro[i] << " ";
-  // }
-  // cout << endl;
 
   quadro = CamadaEnlaceDadosReceptoraEnquadramento(quadro);
 
   CamadaDeAplicacaoReceptora(quadro);
 }
 
+/*****************************************************************************
+Funcao responsavel por detectar ou corrigir os erros do sinal
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraControleDeErro (vector<int> quadro) {
   vector<int> quadroSemControleDeErros;
 
@@ -274,15 +266,13 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErro (vector<int> quadro) {
       break;
   }
 
-  // cout << "Debug:" << endl;
-  // for (int i = 0; i < (int) quadroSemControleDeErros.size(); i++) {
-  //   cout << quadroSemControleDeErros[i] << " "; 
-  // }
-  // cout << endl;
-
   return quadroSemControleDeErros;
 }
 
+/*****************************************************************************
+Funcao responsavel por detectar os erros por bit de paridade par e avisar
+caso surja algum erro
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> quadro) {
   int quantidadeDeBits1 = count(quadro.begin(), quadro.end(), 1);
 
@@ -298,41 +288,44 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar (vector<int> 
   return quadro;
 }
 
+/*****************************************************************************
+Funcao responsavel por detectar os erros por CRC (polinomial) e avisar caso
+algum erro seja encontrado
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
-  vector<int> key{1, 0, 0, 1, 1};
   vector<int> temp(20), rem(20);
 
   int aux = (int) quadro.size();
 
-  for (int i = 0; i < (int) key.size(); i++) {
+  for (int i = 0; i < (int) chaveCRC.size(); i++) {
     rem[i] = quadro[i];
   }
 
-  for (int j = (int) key.size(); j <= (int) quadro.size(); j++) {
-    for (int i = 0; i < (int) key.size(); i++) {
+  for (int j = (int) chaveCRC.size(); j <= (int) quadro.size(); j++) {
+    for (int i = 0; i < (int) chaveCRC.size(); i++) {
       temp[i] = rem[i];
     }
 
     if (rem[0] == 0) {
-      for (int i = 0; i < (int) key.size() - 1; i++) {
+      for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
         rem[i] = temp[i+1];
       }
     } else {
-      for (int i = 0; i < (int) key.size() - 1; i++) {
-        rem[i] = (temp[i+1] ^ key[i+1]);
+      for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
+        rem[i] = (temp[i+1] ^ chaveCRC[i+1]);
       }
     }
 
     if (j != (int) quadro.size()) {
-      rem[(int) key.size() - 1] = quadro[j];
+      rem[(int) chaveCRC.size() - 1] = quadro[j];
     }
   }
 
-  for (int i = 0; i < (int) key.size() - 1; i++) {
+  for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
     quadro[aux + i] = rem[i];
   }
 
-  for (int i = 0; i < (int) key.size() -1; i++) {
+  for (int i = 0; i < (int) chaveCRC.size() -1; i++) {
     aux += rem[i];
   }
 
@@ -341,7 +334,7 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
   if (aux2 != 0) {
     cout << "Houve um erro na transmissão\n";
   } else {
-    for (int i = 0; i < (int) key.size() - 1; i++) {
+    for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
       quadro.pop_back();
     }
   }
@@ -349,14 +342,10 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
   return quadro;
 }
 
+/*****************************************************************************
+Funcao responsavel por corrigir os erros por código de Hamming
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoDeHamming (vector<int> quadro) {
-  // cout << "Debug:" << endl;
-  // for (int i = 0; i < (int) quadro.size(); i++) {
-  //   if (i % 12 == 0) cout << " | ";
-  //   cout << quadro[i] << " ";
-  // }
-  // cout << endl;
-
   vector<int> ans;
 
   for (int i = 0; i < (int) quadro.size(); i+=12) {
@@ -397,6 +386,9 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoDeHamming (vector<int>
   return ans;
 }
 
+/*****************************************************************************
+Funcao responsavel por desenquadrar o quadro da forma escolhida pelo usuário
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraEnquadramento (vector<int> quadro) {
   vector<int> quadroDesenquadrado;
 
@@ -412,6 +404,9 @@ vector<int> CamadaEnlaceDadosReceptoraEnquadramento (vector<int> quadro) {
   return quadroDesenquadrado;
 }
 
+/*****************************************************************************
+Funcao responsavel por desenquadrar o quadro por contagem de caracteres
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraEnquadramentoContagemDeCaracteres(vector<int> quadro) {
   vector<int> mensagemRecebida;
   vector<int> quadroDesenquadrado;
@@ -434,6 +429,9 @@ vector<int> CamadaEnlaceDadosReceptoraEnquadramentoContagemDeCaracteres(vector<i
   return quadroDesenquadrado;
 }
 
+/*****************************************************************************
+Funcao responsavel por desenquadrar o quadro por insercao de bytes
+*****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraEnquadramentoInsercaoDeBytes(vector<int> quadro) {
   vector<int> mensagemRecebida;
   vector<int> quadroDesenquadrado;

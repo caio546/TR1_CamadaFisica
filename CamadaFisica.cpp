@@ -10,8 +10,7 @@
 // Declaracao de variaveis globais
 int deslocamento;
 int periodoDeTransmissao = 125; // em milisegundos
-
-int porcentagemDeErros = 5;
+int porcentagemDeErros = 5; // 0%, 10%, 20%, ..., 100%
 
 int tipoDeCodificacao = BINARIA; // BINARIA, MANCHESTER ou BIPOLAR
 
@@ -30,7 +29,8 @@ void AplicacaoTransmissora(void) {
 }
 
 /*****************************************************************************
-Funcao responsavel por transformar os bytes em bits da mensagem original
+Funcao responsavel por transformar a mensagem original em um formato mais
+adequado para ser transmitido
 *****************************************************************************/
 void CamadaDeAplicacaoTransmissora(string mensagem) {
   vector<int> quadro;
