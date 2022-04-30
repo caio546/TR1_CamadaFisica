@@ -11,6 +11,8 @@
 int deslocamento;
 int periodoDeTransmissao = 125; // em milisegundos
 
+int porcentagemDeErros = 5;
+
 int tipoDeCodificacao = BINARIA; // BINARIA, MANCHESTER ou BIPOLAR
 
 /*****************************************************************************
@@ -113,10 +115,9 @@ vector<int> CamadaFisicaTransmissoraCodificacaoBipolar(vector<int> quadro) {
 void MeioDeComunicacao(vector<int> fluxoBrutoDeBits) {
   iniciarGUI(); // Inicializar interface grafica
 
-  int erro, porcentagemDeErros;
+  int erro;
   vector<int> fluxoBrutoBitsPontoA, fluxoBrutoBitsPontoB;
 
-  porcentagemDeErros = 4; // 10%, 20%, 30%, ..., 100%
   fluxoBrutoBitsPontoA = fluxoBrutoDeBits;
   fluxoBrutoBitsPontoB = fluxoBrutoDeBits;
 
