@@ -9,10 +9,10 @@
 
 // Declaracao de variaveis globais
 int deslocamento;
-int periodoDeTransmissao = 125; // em milisegundos
-int porcentagemDeErros = 5; // 0%, 10%, 20%, ..., 100%
+int periodoDeTransmissao = 10; // em milisegundos
+int porcentagemDeErros = 4; // 0%, 10%, 20%, ..., 100%
 
-int tipoDeCodificacao = BINARIA; // BINARIA, MANCHESTER ou BIPOLAR
+int tipoDeCodificacao = MANCHESTER; // BINARIA, MANCHESTER ou BIPOLAR
 
 /*****************************************************************************
 Funcao responsavel por receber a mensagem do usuario e repassar para as

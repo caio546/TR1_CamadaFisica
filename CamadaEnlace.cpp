@@ -11,7 +11,7 @@
 // Variáveis Globais
 vector<int> chaveCRC{1, 0, 0, 1, 1};
 
-int tipoDeEnquadramento = CONTAGEM_CARACTERES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
+int tipoDeEnquadramento = INSERCAO_BYTES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
 int tipoDeControleDeErro = HAMMING; // BIT_PARIDADE, CRC ou HAMMING 
 
 /*****************************************************************************
@@ -331,12 +331,16 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
 
   int aux2 = 0;
 
+  for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
+    aux2 += rem[i];
+  }
+
   if (aux2 != 0) {
     cout << "Houve um erro na transmissão\n";
-  } else {
-    for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
-      quadro.pop_back();
-    }
+  }
+
+  for (int i = 0; i < (int) chaveCRC.size() - 1; i++) {
+    quadro.pop_back();
   }
 
   return quadro;
