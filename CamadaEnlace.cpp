@@ -9,7 +9,12 @@
 #include "CamadaFisica.hpp"
 
 // Variáveis Globais
-vector<int> chaveCRC{1, 0, 0, 1, 1};
+// CRC-32, IEEE 802
+vector<int> chaveCRC{0, 0, 0, 0, 0, 1, 0, 0,
+                     1, 1, 0, 0, 0, 0, 0, 1,
+                     0, 0, 0, 1, 1, 1, 0, 1,
+                     1, 0, 1, 1, 0, 1, 1, 1                 
+                    };
 
 int tipoDeEnquadramento = INSERCAO_BYTES; //CONTAGEM_CARACTERES ou INSERCAO_BYTES
 int tipoDeControleDeErro = HAMMING; // BIT_PARIDADE, CRC ou HAMMING 
@@ -161,7 +166,7 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar (vector<in
 Funcao responsavel por realizar aplicar o controle de erro CRC (polinomial)
 *****************************************************************************/
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC (vector<int> quadro) {
-  vector<int> temp(20), rem(20);
+  vector<int> temp(50), rem(50);
 
   int aux = (int) quadro.size();
 
@@ -293,7 +298,7 @@ Funcao responsavel por detectar os erros por CRC (polinomial) e avisar caso
 algum erro seja encontrado
 *****************************************************************************/
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC (vector<int> quadro) {
-  vector<int> temp(20), rem(20);
+  vector<int> temp(50), rem(50);
 
   int aux = (int) quadro.size();
 
